@@ -50,7 +50,7 @@ export default function LoginPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2 text-blue-600">
             <BarChart3 className="h-8 w-8" />
-            <span className="text-2xl font-semibold">Analytics</span>
+            <span className="text-2xl font-semibold">Analytics Dashboard</span>
           </div>
           <Card>
             <CardHeader>
