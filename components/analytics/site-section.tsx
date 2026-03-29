@@ -8,7 +8,10 @@ import { useAnalytics } from '@/hooks/use-analytics'
 import type { SiteConfig } from '@/lib/sites-config'
 import type { DateRange } from '@/lib/analytics-types'
 import { StatCards } from './stat-cards'
+import { InsightCards } from './insight-cards'
 import { TrafficChart } from './traffic-chart'
+import { TrafficSources } from './traffic-sources'
+import { DeviceCards } from './device-cards'
 import { TopList } from './top-list'
 import { GeoCards } from './geo-cards'
 import { DateRangeSelect } from './date-range-select'
@@ -113,8 +116,26 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
                 isLoading={isLoading}
               />
 
+              {/* Insight Cards — bounce rate, new vs returning */}
+              <InsightCards
+                bounceRate={data?.bounceRate || 0}
+                newVisitors={data?.newVisitors || 0}
+                returningVisitors={data?.returningVisitors || 0}
+                isLoading={isLoading}
+              />
+
               {/* Traffic Chart */}
               <TrafficChart data={data?.dailyViews || []} isLoading={isLoading} />
+
+              {/* Traffic Sources */}
+              <TrafficSources data={data?.topReferrers || []} isLoading={isLoading} />
+
+              {/* Devices & Browsers */}
+              <DeviceCards
+                devices={data?.devices || []}
+                browsers={data?.browsers || []}
+                isLoading={isLoading}
+              />
 
               {/* Top Pages and Posts */}
               <div className="grid gap-4 lg:grid-cols-2">

@@ -9,6 +9,12 @@ export interface AnalyticsData {
   topCities: { city: string; views: number }[]
   topStates: { state: string; views: number }[]
   mapLocations: { lat: number; lng: number; city: string; country: string; views: number }[]
+  topReferrers: { source: string; visits: number }[]
+  devices: { device: string; views: number }[]
+  browsers: { browser: string; views: number }[]
+  bounceRate: number
+  newVisitors: number
+  returningVisitors: number
 }
 
 export type DateRange = '24h' | '7' | '30'

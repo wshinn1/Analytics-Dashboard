@@ -35,6 +35,11 @@ function getTimeInterval(days: DateRange): string {
   return `timestamp >= now() - INTERVAL ${days} DAY`
 }
 
+function getPeriodStart(days: DateRange): string {
+  if (days === '24h') return `now() - INTERVAL 24 HOUR`
+  return `now() - INTERVAL ${days} DAY`
+}
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -133,6 +138,73 @@ export async function GET(
 
     await delay(100)
 
+    // Batch 4: Insights — referrers, devices, browsers, bounce rate, new vs returning
+    const periodStart = getPeriodStart(days)
+    const safeQuery = async (q: string) => {
+      try { return await runHogQLQuery(q, projectId, apiKey) } catch { return [] }
+    }
+
+    const [referrersResult, devicesResult, browsersResult, bounceResult, newVsReturningResult] =
+      await Promise.all([
+        safeQuery(
+          `SELECT
+             if(properties['$referring_domain'] IS NULL OR properties['$referring_domain'] = '',
+               'Direct', properties['$referring_domain']) as source,
+             count() as visits
+           FROM events
+           WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+           GROUP BY source
+           ORDER BY visits DESC
+           LIMIT 10`
+        ),
+        safeQuery(
+          `SELECT
+             if(properties['$device_type'] IS NULL OR properties['$device_type'] = '',
+               'Desktop', properties['$device_type']) as device,
+             count() as views
+           FROM events
+           WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+           GROUP BY device
+           ORDER BY views DESC`
+        ),
+        safeQuery(
+          `SELECT properties['$browser'] as browser, count() as views
+           FROM events
+           WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+           AND properties['$browser'] IS NOT NULL AND properties['$browser'] != ''
+           GROUP BY browser
+           ORDER BY views DESC
+           LIMIT 8`
+        ),
+        safeQuery(
+          `SELECT round(countIf(session_views = 1) * 100.0 / count(), 1) as bounce_rate
+           FROM (
+             SELECT properties['$session_id'] as sid, count() as session_views
+             FROM events
+             WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+             AND properties['$session_id'] IS NOT NULL AND properties['$session_id'] != ''
+             GROUP BY sid
+           )`
+        ),
+        safeQuery(
+          `SELECT
+             countIf(first_seen >= ${periodStart}) as new_visitors,
+             countIf(first_seen < ${periodStart}) as returning_visitors
+           FROM (
+             SELECT distinct_id, min(timestamp) as first_seen
+             FROM events
+             WHERE event = '$pageview' AND ${hostFilter}
+             AND distinct_id IN (
+               SELECT DISTINCT distinct_id FROM events
+               WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+             )
+             GROUP BY distinct_id
+           )`
+        ),
+      ])
+
+    await delay(100)
+
     // Batch 5: Geo data
     const [countriesResult, citiesResult, statesResult] = await Promise.all([
       runHogQLQuery(
@@ -224,6 +296,21 @@ export async function GET(
         views: row[1] || 0,
       })),
       mapLocations: geocodedLocations as { lat: number; lng: number; city: string; country: string; views: number }[],
+      topReferrers: referrersResult.map((row: [string, number]) => ({
+        source: row[0] || 'Direct',
+        visits: row[1] || 0,
+      })),
+      devices: devicesResult.map((row: [string, number]) => ({
+        device: row[0] || 'Desktop',
+        views: row[1] || 0,
+      })),
+      browsers: browsersResult.map((row: [string, number]) => ({
+        browser: row[0] || 'Unknown',
+        views: row[1] || 0,
+      })),
+      bounceRate: bounceResult[0]?.[0] ?? 0,
+      newVisitors: newVsReturningResult[0]?.[0] ?? 0,
+      returningVisitors: newVsReturningResult[0]?.[1] ?? 0,
     }
 
     return NextResponse.json(analyticsData)
