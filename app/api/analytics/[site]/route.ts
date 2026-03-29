@@ -133,8 +133,6 @@ export async function GET(
 
     await delay(100)
 
-    await delay(100)
-
     // Batch 4b: Map locations
     let mapLocationsResult: [string, string, string, string, number][] = []
     try {
@@ -147,9 +145,8 @@ export async function GET(
            count() as views
          FROM events
          WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
-         AND properties['$geoip_latitude'] != ''
-         AND properties['$geoip_longitude'] != ''
          GROUP BY lat, lng, city, country
+         HAVING lat != '' AND lng != ''
          ORDER BY views DESC
          LIMIT 200`,
         projectId,
