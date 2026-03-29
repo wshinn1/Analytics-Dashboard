@@ -133,31 +133,6 @@ export async function GET(
 
     await delay(100)
 
-    // Batch 4b: Map locations
-    let mapLocationsResult: [string, string, string, string, number][] = []
-    try {
-      mapLocationsResult = await runHogQLQuery(
-        `SELECT
-           properties['$geoip_latitude'] as lat,
-           properties['$geoip_longitude'] as lng,
-           properties['$geoip_city_name'] as city,
-           properties['$geoip_country_name'] as country,
-           count() as views
-         FROM events
-         WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
-         GROUP BY lat, lng, city, country
-         HAVING lat != '' AND lng != ''
-         ORDER BY views DESC
-         LIMIT 200`,
-        projectId,
-        apiKey
-      )
-    } catch (e) {
-      console.error('Map locations query failed:', e)
-    }
-
-    await delay(100)
-
     // Batch 5: Geo data
     const [countriesResult, citiesResult, statesResult] = await Promise.all([
       runHogQLQuery(
@@ -195,6 +170,31 @@ export async function GET(
       ),
     ])
 
+    // Geocode top cities using Mapbox
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+    const topCitiesForMap = citiesResult.slice(0, 20)
+    const geocodedLocations = mapboxToken
+      ? await Promise.all(
+          topCitiesForMap.map(async (row: [string, number]) => {
+            const city = row[0]
+            const views = row[1] || 0
+            if (!city) return null
+            try {
+              const res = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?types=place&limit=1&access_token=${mapboxToken}`
+              )
+              const data = await res.json()
+              const feature = data.features?.[0]
+              if (!feature) return null
+              const [lng, lat] = feature.center
+              return { lat, lng, city, country: feature.context?.find((c: { id: string; text: string }) => c.id.startsWith('country'))?.text || '', views }
+            } catch {
+              return null
+            }
+          })
+        ).then((results) => results.filter(Boolean))
+      : []
+
     const analyticsData: AnalyticsData = {
       pageviews: pageviewsResult[0]?.[0] || 0,
       uniqueVisitors: uniqueVisitorsResult[0]?.[0] || 0,
@@ -223,16 +223,7 @@ export async function GET(
         state: row[0] || 'Unknown',
         views: row[1] || 0,
       })),
-      mapLocations: mapLocationsResult
-        .filter((row) => row[0] && row[1])
-        .map((row) => ({
-          lat: parseFloat(String(row[0])),
-          lng: parseFloat(String(row[1])),
-          city: row[2] || 'Unknown',
-          country: row[3] || 'Unknown',
-          views: row[4] || 0,
-        }))
-        .filter((loc) => !isNaN(loc.lat) && !isNaN(loc.lng)),
+      mapLocations: geocodedLocations as { lat: number; lng: number; city: string; country: string; views: number }[],
     }
 
     return NextResponse.json(analyticsData)
