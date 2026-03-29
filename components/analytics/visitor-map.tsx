@@ -1,6 +1,5 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import { useState } from 'react'
 import { Card, Title } from '@tremor/react'
@@ -69,7 +68,7 @@ export function VisitorMap({ locations, isLoading }: VisitorMapProps) {
         <Map
           initialViewState={{ longitude: 0, latitude: 20, zoom: 1.2 }}
           style={{ width: '100%', height: '100%' }}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle="mapbox://styles/mapbox/light-v11"
           mapboxAccessToken={MAPBOX_TOKEN}
         >
           <NavigationControl position="top-right" />
@@ -94,10 +93,10 @@ export function VisitorMap({ locations, isLoading }: VisitorMapProps) {
                     height: size,
                     borderRadius: '50%',
                     backgroundColor: '#6366f1',
-                    opacity,
-                    border: '2px solid rgba(255,255,255,0.6)',
+                    opacity: Math.max(0.7, opacity),
+                    border: '2px solid #fff',
                     cursor: 'pointer',
-                    boxShadow: '0 0 6px rgba(99,102,241,0.8)',
+                    boxShadow: '0 0 0 2px rgba(99,102,241,0.4), 0 2px 6px rgba(0,0,0,0.3)',
                   }}
                 />
               </Marker>
