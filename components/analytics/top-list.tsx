@@ -21,7 +21,7 @@ export function TopList({ title, data, isLoading }: TopListProps) {
           <span className="text-muted-foreground">No data available</span>
         </div>
       ) : (
-        <BarList data={data} className="mt-4" />
+        <BarList data={data} className="mt-4" color="indigo" />
       )}
     </Card>
   )
