@@ -78,7 +78,7 @@ export function VisitorMap({ locations, isLoading }: VisitorMapProps) {
   return (
     <Card className="p-6">
       <Title>Visitor Map</Title>
-      <div className="mt-4 overflow-hidden rounded-lg" style={{ height: '400px' }}>
+      <div className="mt-4 overflow-hidden rounded-lg" style={{ height: 'clamp(260px, 50vw, 400px)' }}>
         <Map
           initialViewState={{ longitude: 0, latitude: 20, zoom: 1.2 }}
           style={{ width: '100%', height: '100%' }}

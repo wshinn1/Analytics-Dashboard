@@ -83,7 +83,7 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
       {isExpanded && (
         <div className="border-t border-border p-4">
           {/* Controls */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
             <DateRangeSelect value={dateRange} onChange={setDateRange} />
             <Button
               variant="outline"

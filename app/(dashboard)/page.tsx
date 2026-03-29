@@ -5,7 +5,7 @@ import { SiteSection } from '@/components/analytics/site-section'
 
 export default function DashboardPage() {
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4 pt-18 lg:p-8 lg:pt-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Analytics Dashboard</h1>
         <p className="mt-2 text-muted-foreground">
