@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAnalytics } from '@/hooks/use-analytics'
@@ -11,6 +12,11 @@ import { TrafficChart } from './traffic-chart'
 import { TopList } from './top-list'
 import { GeoCards } from './geo-cards'
 import { DateRangeSelect } from './date-range-select'
+
+const VisitorMap = dynamic(
+  () => import('./visitor-map').then((m) => ({ default: m.VisitorMap })),
+  { ssr: false }
+)
 
 interface SiteSectionProps {
   site: SiteConfig
@@ -115,6 +121,12 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
                 <TopList title="Top Pages" data={topPagesData} isLoading={isLoading} />
                 <TopList title="Top Posts" data={topPostsData} isLoading={isLoading} />
               </div>
+
+              {/* Visitor Map */}
+              <VisitorMap
+                locations={data?.mapLocations || []}
+                isLoading={isLoading}
+              />
 
               {/* Geo Data */}
               <GeoCards
