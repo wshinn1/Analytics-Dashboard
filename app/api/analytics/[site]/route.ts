@@ -148,11 +148,25 @@ export async function GET(
       await Promise.all([
         safeQuery(
           `SELECT
-             if(properties['$referring_domain'] IS NULL OR properties['$referring_domain'] = '',
-               'Direct', properties['$referring_domain']) as source,
+             multiIf(
+               properties['$referring_domain'] = '$direct'
+                 OR properties['$referring_domain'] IS NULL
+                 OR properties['$referring_domain'] = '', 'Direct',
+               properties['$referring_domain']
+             ) as source,
              count() as visits
            FROM events
            WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+           AND (
+             properties['$referring_domain'] = '$direct'
+             OR properties['$referring_domain'] IS NULL
+             OR properties['$referring_domain'] = ''
+             OR (
+               properties['$referring_domain'] NOT LIKE '%${siteConfig.domain}%'
+               AND properties['$referring_domain'] NOT LIKE '%.vercel.app%'
+               AND properties['$referring_domain'] NOT LIKE '%localhost%'
+             )
+           )
            GROUP BY source
            ORDER BY visits DESC
            LIMIT 10`
