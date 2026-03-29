@@ -4,6 +4,7 @@ export interface SiteConfig {
   domain: string
   hostFilter: string
   contentPath: string
+  color: string
 }
 
 export const sitesConfig: SiteConfig[] = [
@@ -13,6 +14,7 @@ export const sitesConfig: SiteConfig[] = [
     domain: 'theadoptedson.com',
     hostFilter: '%theadoptedson.com',
     contentPath: '/devotionals/',
+    color: '#6366f1', // indigo
   },
   {
     id: 'tektonstable',
@@ -20,6 +22,7 @@ export const sitesConfig: SiteConfig[] = [
     domain: 'tektonstable.com',
     hostFilter: '%tektonstable.com',
     contentPath: '/blog/',
+    color: '#10b981', // emerald
   },
   {
     id: 'fullstack',
@@ -27,5 +30,6 @@ export const sitesConfig: SiteConfig[] = [
     domain: 'wesshinn.com',
     hostFilter: '%wesshinn.com',
     contentPath: '/posts/',
+    color: '#f59e0b', // amber
   },
 ]

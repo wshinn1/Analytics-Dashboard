@@ -58,17 +58,18 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
   })) || []
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
       {/* Header - always visible */}
       <button
         onClick={toggleExpanded}
         className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-muted/50"
+        style={{ borderLeft: `4px solid ${site.color}`, backgroundColor: `${site.color}08` }}
       >
         <div className="flex items-center gap-3">
           {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            <ChevronDown className="h-5 w-5" style={{ color: site.color }} />
           ) : (
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            <ChevronRight className="h-5 w-5" style={{ color: site.color }} />
           )}
           <div>
             <h2 className="text-lg font-semibold text-card-foreground">{site.name}</h2>
@@ -76,7 +77,7 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
           </div>
         </div>
         {!isExpanded && data && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm font-medium" style={{ color: site.color }}>
             {data.pageviews.toLocaleString()} views
           </div>
         )}
