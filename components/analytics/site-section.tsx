@@ -8,7 +8,10 @@ import { useAnalytics } from '@/hooks/use-analytics'
 import type { SiteConfig } from '@/lib/sites-config'
 import type { DateRange } from '@/lib/analytics-types'
 import { StatCards } from './stat-cards'
+import { InsightCards } from './insight-cards'
 import { TrafficChart } from './traffic-chart'
+import { TrafficSources } from './traffic-sources'
+import { DeviceCards } from './device-cards'
 import { TopList } from './top-list'
 import { GeoCards } from './geo-cards'
 import { DateRangeSelect } from './date-range-select'
@@ -55,17 +58,18 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
   })) || []
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
       {/* Header - always visible */}
       <button
         onClick={toggleExpanded}
         className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-muted/50"
+        style={{ borderLeft: `4px solid ${site.color}`, backgroundColor: `${site.color}08` }}
       >
         <div className="flex items-center gap-3">
           {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            <ChevronDown className="h-5 w-5" style={{ color: site.color }} />
           ) : (
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            <ChevronRight className="h-5 w-5" style={{ color: site.color }} />
           )}
           <div>
             <h2 className="text-lg font-semibold text-card-foreground">{site.name}</h2>
@@ -73,7 +77,7 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
           </div>
         </div>
         {!isExpanded && data && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm font-medium" style={{ color: site.color }}>
             {data.pageviews.toLocaleString()} views
           </div>
         )}
@@ -113,8 +117,26 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
                 isLoading={isLoading}
               />
 
+              {/* Insight Cards — bounce rate, new vs returning */}
+              <InsightCards
+                bounceRate={data?.bounceRate || 0}
+                newVisitors={data?.newVisitors || 0}
+                returningVisitors={data?.returningVisitors || 0}
+                isLoading={isLoading}
+              />
+
               {/* Traffic Chart */}
               <TrafficChart data={data?.dailyViews || []} isLoading={isLoading} />
+
+              {/* Traffic Sources */}
+              <TrafficSources data={data?.topReferrers || []} isLoading={isLoading} />
+
+              {/* Devices & Browsers */}
+              <DeviceCards
+                devices={data?.devices || []}
+                browsers={data?.browsers || []}
+                isLoading={isLoading}
+              />
 
               {/* Top Pages and Posts */}
               <div className="grid gap-4 lg:grid-cols-2">
