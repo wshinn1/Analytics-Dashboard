@@ -49,13 +49,13 @@ export function GeoCards({ topCountries, topStates, topCities, isLoading }: GeoC
               data={donutData}
               category="views"
               index="name"
-              colors={['blue', 'cyan', 'indigo', 'violet', 'fuchsia']}
+              colors={['indigo', 'violet', 'cyan', 'emerald', 'amber']}
               className="h-40"
               valueFormatter={(value) => value.toLocaleString()}
             />
             <Legend
               categories={donutData.map((d) => d.name)}
-              colors={['blue', 'cyan', 'indigo', 'violet', 'fuchsia']}
+              colors={['indigo', 'violet', 'cyan', 'emerald', 'amber']}
               className="mt-4 justify-center"
             />
           </div>
@@ -74,7 +74,7 @@ export function GeoCards({ topCountries, topStates, topCities, isLoading }: GeoC
             <span className="text-muted-foreground">No data available</span>
           </div>
         ) : (
-          <BarList data={stateData} className="mt-4" />
+          <BarList data={stateData} className="mt-4" color="violet" />
         )}
       </Card>
 
@@ -90,7 +90,7 @@ export function GeoCards({ topCountries, topStates, topCities, isLoading }: GeoC
             <span className="text-muted-foreground">No data available</span>
           </div>
         ) : (
-          <BarList data={cityData} className="mt-4" />
+          <BarList data={cityData} className="mt-4" color="cyan" />
         )}
       </Card>
     </div>

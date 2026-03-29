@@ -26,10 +26,11 @@ export function TrafficChart({ data, isLoading }: TrafficChartProps) {
           data={chartData}
           index="date"
           categories={['Page Views']}
-          colors={['blue']}
+          colors={['indigo']}
           valueFormatter={(value) => value.toLocaleString()}
           showAnimation
           curveType="monotone"
+          showGradient
         />
       )}
     </Card>
