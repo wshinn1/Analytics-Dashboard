@@ -48,7 +48,7 @@ export default function LoginPage() {
     <div className="flex min-h-svh w-full items-center justify-center bg-muted/30 p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-2 text-foreground">
+          <div className="flex items-center justify-center gap-2 text-blue-600">
             <BarChart3 className="h-8 w-8" />
             <span className="text-2xl font-semibold">Analytics</span>
           </div>
@@ -84,12 +84,12 @@ export default function LoginPage() {
                     />
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
                   <p className="text-center text-sm text-muted-foreground">
                     Don&apos;t have an account?{' '}
-                    <Link href="/signup" className="text-primary hover:underline">
+                    <Link href="/signup" className="text-blue-600 hover:underline">
                       Sign up
                     </Link>
                   </p>
