@@ -8,6 +8,7 @@ export interface AnalyticsData {
   topCountries: { country: string; views: number }[]
   topCities: { city: string; views: number }[]
   topStates: { state: string; views: number }[]
+  mapLocations: { lat: number; lng: number; city: string; country: string; views: number }[]
 }
 
 export type DateRange = '24h' | '7' | '30'

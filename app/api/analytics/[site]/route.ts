@@ -133,7 +133,30 @@ export async function GET(
 
     await delay(100)
 
-    // Batch 4: Geo data
+    await delay(100)
+
+    // Batch 4b: Map locations
+    const mapLocationsResult = await runHogQLQuery(
+      `SELECT
+         toFloat64(properties['$geoip_latitude']) as lat,
+         toFloat64(properties['$geoip_longitude']) as lng,
+         properties['$geoip_city_name'] as city,
+         properties['$geoip_country_name'] as country,
+         count() as views
+       FROM events
+       WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
+       AND properties['$geoip_latitude'] IS NOT NULL
+       AND properties['$geoip_longitude'] IS NOT NULL
+       GROUP BY lat, lng, city, country
+       ORDER BY views DESC
+       LIMIT 200`,
+      projectId,
+      apiKey
+    )
+
+    await delay(100)
+
+    // Batch 5: Geo data
     const [countriesResult, citiesResult, statesResult] = await Promise.all([
       runHogQLQuery(
         `SELECT properties['$geoip_country_name'] as country, count() as views 
@@ -198,6 +221,15 @@ export async function GET(
         state: row[0] || 'Unknown',
         views: row[1] || 0,
       })),
+      mapLocations: mapLocationsResult
+        .filter((row: [number, number, string, string, number]) => row[0] && row[1])
+        .map((row: [number, number, string, string, number]) => ({
+          lat: row[0],
+          lng: row[1],
+          city: row[2] || 'Unknown',
+          country: row[3] || 'Unknown',
+          views: row[4] || 0,
+        })),
     }
 
     return NextResponse.json(analyticsData)
