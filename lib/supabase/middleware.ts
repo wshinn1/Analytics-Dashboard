@@ -33,11 +33,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect all routes except /login and api routes
+  // Protect all routes except /login, /signup, and api routes
   const isLoginPage = request.nextUrl.pathname === '/login'
+  const isSignupPage = request.nextUrl.pathname === '/signup'
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')
 
-  if (!user && !isLoginPage && !isApiRoute) {
+  if (!user && !isLoginPage && !isSignupPage && !isApiRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
