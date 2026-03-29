@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { BarChart3 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -86,6 +87,12 @@ export default function LoginPage() {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Don&apos;t have an account?{' '}
+                    <Link href="/signup" className="text-primary hover:underline">
+                      Sign up
+                    </Link>
+                  </p>
                 </div>
               </form>
             </CardContent>
