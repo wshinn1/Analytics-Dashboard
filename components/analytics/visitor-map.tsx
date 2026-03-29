@@ -1,7 +1,8 @@
 'use client'
 
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import type { MapRef } from 'react-map-gl/mapbox'
 import { Card, Title } from '@tremor/react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -26,6 +27,19 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export function VisitorMap({ locations, isLoading }: VisitorMapProps) {
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null)
+
+  const onMapLoad = useCallback((e: { target: MapRef }) => {
+    const map = e.target
+    // Paint all water layers blue
+    const waterLayers = ['water', 'water-shadow', 'waterway', 'waterway-label']
+    waterLayers.forEach((id) => {
+      if (map.getLayer(id)) {
+        const type = map.getLayer(id)?.type
+        if (type === 'fill') map.setPaintProperty(id, 'fill-color', '#a8d5f5')
+        if (type === 'line') map.setPaintProperty(id, 'line-color', '#60a5fa')
+      }
+    })
+  }, [])
 
   const maxViews = Math.max(...locations.map((l) => l.views), 1)
 
@@ -70,6 +84,7 @@ export function VisitorMap({ locations, isLoading }: VisitorMapProps) {
           style={{ width: '100%', height: '100%' }}
           mapStyle="mapbox://styles/mapbox/light-v11"
           mapboxAccessToken={MAPBOX_TOKEN}
+          onLoad={onMapLoad}
         >
           <NavigationControl position="top-right" />
 
