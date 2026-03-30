@@ -68,7 +68,9 @@ export async function GET(
   }
 
   const timeInterval = getTimeInterval(days)
-  const hostFilter = `properties['$host'] LIKE '${siteConfig.hostFilter}'`
+  const hostFilter = Array.isArray(siteConfig.hostFilter)
+    ? `(${siteConfig.hostFilter.map((h) => `properties['$host'] = '${h}'`).join(' OR ')})`
+    : `properties['$host'] LIKE '${siteConfig.hostFilter}'`
 
   try {
     // Batch 1: Core metrics
