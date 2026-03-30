@@ -27,9 +27,17 @@ export const sitesConfig: SiteConfig[] = [
   {
     id: 'fullstack',
     name: 'Fullstack',
-    domain: 'wesshinn.com',
-    hostFilter: '%wesshinn.com',
+    domain: 'fullstack.wesshinn.com',
+    hostFilter: 'fullstack.wesshinn.com',
     contentPath: '/posts/',
     color: '#f59e0b', // amber
+  },
+  {
+    id: 'wesshinn',
+    name: 'Wes Shinn',
+    domain: 'wesshinn.com',
+    hostFilter: 'wesshinn.com',
+    contentPath: '/blog/',
+    color: '#ec4899', // pink
   },
 ]
