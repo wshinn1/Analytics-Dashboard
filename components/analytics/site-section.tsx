@@ -94,10 +94,10 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
               size="sm"
               onClick={() => refresh()}
               disabled={isLoading}
-              className="gap-2"
+              className="gap-2 min-w-[90px]"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              {isLoading ? 'Loading...' : 'Refresh'}
             </Button>
           </div>
 
