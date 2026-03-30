@@ -2,7 +2,7 @@ export interface SiteConfig {
   id: string
   name: string
   domain: string
-  hostFilter: string
+  hostFilter: string | string[]
   contentPath: string
   color: string
 }
@@ -36,7 +36,7 @@ export const sitesConfig: SiteConfig[] = [
     id: 'wesshinn',
     name: 'Wes Shinn',
     domain: 'wesshinn.com',
-    hostFilter: 'wesshinn.com',
+    hostFilter: ['wesshinn.com', 'www.wesshinn.com'],
     contentPath: '/blog/',
     color: '#ec4899', // pink
   },
