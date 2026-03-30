@@ -269,7 +269,7 @@ export async function GET(
             if (!city) return null
             try {
               const res = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?types=place&limit=1&access_token=${mapboxToken}`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?types=place,locality,neighborhood,district&limit=1&access_token=${mapboxToken}`
               )
               const data = await res.json()
               const feature = data.features?.[0]
