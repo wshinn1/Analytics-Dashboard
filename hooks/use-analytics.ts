@@ -8,7 +8,7 @@ export function useAnalytics(siteId: string, days: DateRange) {
     `/api/analytics/${siteId}?days=${days}`,
     fetcher,
     {
-      refreshInterval: 30000, // Auto-refresh every 30 seconds
+      refreshInterval: 180000, // Auto-refresh every 3 minutes
       revalidateOnFocus: true,
     }
   )
