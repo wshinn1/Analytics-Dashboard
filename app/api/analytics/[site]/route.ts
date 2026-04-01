@@ -71,6 +71,8 @@ export async function GET(
   const hostFilter = Array.isArray(siteConfig.hostFilter)
     ? `(${siteConfig.hostFilter.map((h) => `properties['$host'] = '${h}'`).join(' OR ')})`
     : `properties['$host'] LIKE '${siteConfig.hostFilter}'`
+  const domainParts = siteConfig.domain.split('.')
+  const baseDomain = domainParts.length > 2 ? domainParts.slice(-2).join('.') : siteConfig.domain
 
   try {
     // Batch 1: Core metrics
@@ -164,7 +166,7 @@ export async function GET(
              OR properties['$referring_domain'] IS NULL
              OR properties['$referring_domain'] = ''
              OR (
-               properties['$referring_domain'] NOT LIKE '%${siteConfig.domain}%'
+               properties['$referring_domain'] NOT LIKE '%${baseDomain}%'
                AND properties['$referring_domain'] NOT LIKE '%.vercel.app%'
                AND properties['$referring_domain'] NOT LIKE '%localhost%'
              )
