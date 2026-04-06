@@ -13,7 +13,7 @@ export function useAnalytics(siteId: string, days: DateRange) {
     fetcher,
     {
       refreshInterval: 180000, // Auto-refresh every 3 minutes
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
     }
   )
 
