@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sitesConfig } from '@/lib/sites-config'
 import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const POSTHOG_API_URL = 'https://us.posthog.com/api/projects'
 
@@ -65,6 +66,25 @@ export async function GET(
       { error: 'PostHog credentials not configured' },
       { status: 500 }
     )
+  }
+
+  // Return cached data unless ?refresh=true
+  const forceRefresh = searchParams.get('refresh') === 'true'
+  if (!forceRefresh && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const supabase = createAdminClient()
+      const { data: cached } = await supabase
+        .from('analytics_cache')
+        .select('data')
+        .eq('site_id', site)
+        .eq('date_range', days)
+        .single()
+      if (cached?.data) {
+        return NextResponse.json(cached.data)
+      }
+    } catch {
+      // Cache miss or Supabase error — fall through to live fetch
+    }
   }
 
   const timeInterval = getTimeInterval(days)
@@ -329,6 +349,21 @@ export async function GET(
       bounceRate: bounceResult[0]?.[0] ?? 0,
       newVisitors: newVsReturningResult[0]?.[0] ?? 0,
       returningVisitors: newVsReturningResult[0]?.[1] ?? 0,
+    }
+
+    // Write result to cache
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const supabase = createAdminClient()
+        await supabase
+          .from('analytics_cache')
+          .upsert(
+            { site_id: site, date_range: days, data: analyticsData, cached_at: new Date().toISOString() },
+            { onConflict: 'site_id,date_range' }
+          )
+      } catch {
+        // Non-fatal — return the data even if caching fails
+      }
     }
 
     return NextResponse.json(analyticsData)

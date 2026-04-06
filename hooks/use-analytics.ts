@@ -17,10 +17,17 @@ export function useAnalytics(siteId: string, days: DateRange) {
     }
   )
 
+  // Force-refresh bypasses the server-side cache and fetches live from PostHog
+  const forceRefresh = () =>
+    mutate(
+      fetcher(`/api/analytics/${siteId}?days=${days}&refresh=true`),
+      { revalidate: false }
+    )
+
   return {
     data,
     error,
     isLoading: isLoading || isValidating,
-    refresh: mutate,
+    refresh: forceRefresh,
   }
 }
