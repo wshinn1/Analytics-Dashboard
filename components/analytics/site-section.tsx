@@ -47,12 +47,12 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
     localStorage.setItem(storageKey, String(newValue))
   }
 
-  const topPagesData = data?.topPages.map((p) => ({
+  const topPagesData = data?.topPages?.map((p) => ({
     name: p.path,
     value: p.views,
   })) || []
 
-  const topPostsData = data?.topPosts.map((p) => ({
+  const topPostsData = data?.topPosts?.map((p) => ({
     name: p.path,
     value: p.views,
   })) || []
