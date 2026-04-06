@@ -7,13 +7,14 @@ async function getInitialData(): Promise<Record<string, AnalyticsData>> {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return {}
   try {
     const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('analytics_cache')
-      .select('site_id, data, cached_at')
-      .eq('date_range', '7')
-    if (!data) return {}
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+    const result = await Promise.race([
+      supabase.from('analytics_cache').select('site_id, data, cached_at').eq('date_range', '7'),
+      timeout,
+    ])
+    if (!result || !('data' in result) || !result.data) return {}
     return Object.fromEntries(
-      data.map((row) => [row.site_id, { ...row.data, cachedAt: row.cached_at }])
+      result.data.map((row) => [row.site_id, { ...row.data, cachedAt: row.cached_at }])
     )
   } catch {
     return {}

@@ -68,15 +68,8 @@ export async function GET(
     )
   }
 
-  // Cache TTL: 24h range expires after 2h (window shifts constantly),
-  // 7-day after 4h, 30-day after 8h. Cron jobs refresh proactively at 5am/noon/5pm EST.
-  const CACHE_TTL_MS: Record<DateRange, number> = {
-    '24h': 2 * 60 * 60 * 1000,
-    '7': 4 * 60 * 60 * 1000,
-    '30': 8 * 60 * 60 * 1000,
-  }
-
-  // Return cached data unless ?refresh=true or cache is stale
+  // Always serve from cache unless ?refresh=true.
+  // Cron jobs (5am/noon/5pm EST) and manual Refresh keep the cache current.
   const forceRefresh = searchParams.get('refresh') === 'true'
   if (!forceRefresh && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
@@ -87,14 +80,11 @@ export async function GET(
         .eq('site_id', site)
         .eq('date_range', days)
         .single()
-      if (cached?.data && cached.cached_at) {
-        const age = Date.now() - new Date(cached.cached_at).getTime()
-        if (age < CACHE_TTL_MS[days]) {
-          return NextResponse.json(
-            { ...cached.data, cachedAt: cached.cached_at },
-            { headers: { 'Cache-Control': 'no-store' } }
-          )
-        }
+      if (cached?.data) {
+        return NextResponse.json(
+          { ...cached.data, cachedAt: cached.cached_at },
+          { headers: { 'Cache-Control': 'no-store' } }
+        )
       }
     } catch {
       // Cache miss or Supabase error — fall through to live fetch

@@ -11,12 +11,17 @@ const fetcher = (url: string) =>
 export function useAnalytics(siteId: string, days: DateRange, initialData?: AnalyticsData) {
   const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
+  const fallbackData = days === '7' ? initialData : undefined
+
   const { data, error, isLoading, mutate } = useSWR<AnalyticsData>(
     `/api/analytics/${siteId}?days=${days}`,
     fetcher,
     {
-      fallbackData: days === '7' ? initialData : undefined,
-      refreshInterval: 180000,  // background refresh every 3 minutes
+      fallbackData,
+      // Don't re-fetch on mount when we already have server-rendered data.
+      // Key changes (date range switch) always fetch regardless of this flag.
+      revalidateOnMount: !fallbackData,
+      refreshInterval: 180000,
       revalidateOnFocus: false,
     }
   )
