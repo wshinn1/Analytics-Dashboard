@@ -12,7 +12,7 @@ export const sitesConfig: SiteConfig[] = [
     id: 'theadoptedson',
     name: 'The Adopted Son',
     domain: 'theadoptedson.com',
-    hostFilter: '%theadoptedson.com',
+    hostFilter: 'theadoptedson.com',
     contentPath: '/devotionals/',
     color: '#6366f1', // indigo
   },
@@ -20,7 +20,7 @@ export const sitesConfig: SiteConfig[] = [
     id: 'tektonstable',
     name: "Tekton's Table",
     domain: 'tektonstable.com',
-    hostFilter: '%tektonstable.com',
+    hostFilter: 'tektonstable.com',
     contentPath: '/blog/',
     color: '#10b981', // emerald
   },

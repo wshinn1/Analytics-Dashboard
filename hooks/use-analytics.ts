@@ -1,4 +1,5 @@
 import useSWR from 'swr'
+import { useEffect } from 'react'
 import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
 
 const fetcher = (url: string) =>
@@ -7,17 +8,48 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
+function storageKey(siteId: string, days: DateRange) {
+  return `analytics_${siteId}_${days}`
+}
+
+function readLocal(siteId: string, days: DateRange): AnalyticsData | undefined {
+  if (typeof window === 'undefined') return undefined
+  try {
+    const raw = localStorage.getItem(storageKey(siteId, days))
+    return raw ? JSON.parse(raw) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function writeLocal(siteId: string, days: DateRange, data: AnalyticsData) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(storageKey(siteId, days), JSON.stringify(data))
+  } catch {
+    // ignore (storage full, private mode, etc.)
+  }
+}
+
 export function useAnalytics(siteId: string, days: DateRange) {
+  const fallbackData = readLocal(siteId, days)
+
   const { data, error, isLoading, isValidating, mutate } = useSWR<AnalyticsData>(
     `/api/analytics/${siteId}?days=${days}`,
     fetcher,
     {
-      refreshInterval: 180000, // Auto-refresh every 3 minutes
-      revalidateOnFocus: true,
+      fallbackData,             // show localStorage data immediately
+      refreshInterval: 180000,  // background refresh every 3 minutes
+      revalidateOnFocus: false,
     }
   )
 
-  // Force-refresh bypasses the server-side cache and fetches live from PostHog
+  // Keep localStorage in sync whenever fresh data arrives
+  useEffect(() => {
+    if (data) writeLocal(siteId, days, data)
+  }, [data, siteId, days])
+
+  // Force-refresh bypasses server cache, fetches live from PostHog
   const forceRefresh = () =>
     mutate(
       fetcher(`/api/analytics/${siteId}?days=${days}&refresh=true`),
@@ -27,7 +59,7 @@ export function useAnalytics(siteId: string, days: DateRange) {
   return {
     data,
     error,
-    isLoading,
+    isLoading,       // false immediately if localStorage has data
     isRefreshing: isValidating && !isLoading,
     refresh: forceRefresh,
   }
