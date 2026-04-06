@@ -1,5 +1,5 @@
 import useSWR from 'swr'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
 
 const fetcher = (url: string) =>
@@ -33,8 +33,9 @@ function writeLocal(siteId: string, days: DateRange, data: AnalyticsData) {
 
 export function useAnalytics(siteId: string, days: DateRange) {
   const fallbackData = readLocal(siteId, days)
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR<AnalyticsData>(
+  const { data, error, isLoading, mutate } = useSWR<AnalyticsData>(
     `/api/analytics/${siteId}?days=${days}`,
     fetcher,
     {
@@ -50,17 +51,23 @@ export function useAnalytics(siteId: string, days: DateRange) {
   }, [data, siteId, days])
 
   // Force-refresh bypasses server cache, fetches live from PostHog
-  const forceRefresh = () =>
-    mutate(
-      fetcher(`/api/analytics/${siteId}?days=${days}&refresh=true`),
-      { revalidate: false }
-    )
+  const forceRefresh = async () => {
+    setIsManualRefreshing(true)
+    try {
+      await mutate(
+        fetcher(`/api/analytics/${siteId}?days=${days}&refresh=true`),
+        { revalidate: false }
+      )
+    } finally {
+      setIsManualRefreshing(false)
+    }
+  }
 
   return {
     data,
     error,
     isLoading,       // false immediately if localStorage has data
-    isRefreshing: isValidating && !isLoading,
+    isRefreshing: isManualRefreshing,
     refresh: forceRefresh,
   }
 }
