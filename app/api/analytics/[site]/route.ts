@@ -90,7 +90,7 @@ export async function GET(
   const timeInterval = getTimeInterval(days)
   const hostFilter = Array.isArray(siteConfig.hostFilter)
     ? `(${siteConfig.hostFilter.map((h) => `properties['$host'] = '${h}'`).join(' OR ')})`
-    : `properties['$host'] LIKE '${siteConfig.hostFilter}'`
+    : `position(properties['$host'], '${siteConfig.hostFilter}') > 0`
   const domainParts = siteConfig.domain.split('.')
   const baseDomain = domainParts.length > 2 ? domainParts.slice(-2).join('.') : siteConfig.domain
 
