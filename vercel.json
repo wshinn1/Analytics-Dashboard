@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/analytics/prefetch",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/analytics/prefetch",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/analytics/prefetch",
+      "schedule": "0 17 * * *"
+    }
+  ]
+}
