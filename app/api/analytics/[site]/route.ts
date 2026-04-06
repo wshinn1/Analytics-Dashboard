@@ -92,7 +92,7 @@ export async function GET(
         if (age < CACHE_TTL_MS[days]) {
           return NextResponse.json(
             { ...cached.data, cachedAt: cached.cached_at },
-            { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } }
+            { headers: { 'Cache-Control': 'no-store' } }
           )
         }
       }
@@ -382,10 +382,7 @@ export async function GET(
       }
     }
 
-    const cacheHeaders = forceRefresh
-      ? { 'Cache-Control': 'no-store' }
-      : { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
-    return NextResponse.json(analyticsData, { headers: cacheHeaders })
+    return NextResponse.json(analyticsData, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('Analytics API error:', error)
     return NextResponse.json(
