@@ -27,7 +27,8 @@ export function useAnalytics(siteId: string, days: DateRange) {
   return {
     data,
     error,
-    isLoading: isLoading || isValidating,
+    isLoading,
+    isRefreshing: isValidating && !isLoading,
     refresh: forceRefresh,
   }
 }

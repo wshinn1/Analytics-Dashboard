@@ -15,6 +15,7 @@ export interface AnalyticsData {
   bounceRate: number
   newVisitors: number
   returningVisitors: number
+  cachedAt: string
 }
 
 export type DateRange = '24h' | '7' | '30'

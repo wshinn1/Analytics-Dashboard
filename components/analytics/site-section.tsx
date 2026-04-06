@@ -30,7 +30,7 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
   const storageKey = `analytics-expanded-${site.id}`
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [dateRange, setDateRange] = useState<DateRange>('7')
-  const { data, isLoading, error, refresh } = useAnalytics(site.id, dateRange)
+  const { data, isLoading, isRefreshing, error, refresh } = useAnalytics(site.id, dateRange)
 
   // Load expanded state from localStorage on mount
   useEffect(() => {
@@ -89,16 +89,24 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
           {/* Controls */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
             <DateRangeSelect value={dateRange} onChange={setDateRange} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refresh()}
-              disabled={isLoading}
-              className="gap-2 min-w-[90px]"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              {isLoading ? 'Loading...' : 'Refresh'}
-            </Button>
+            <div className="flex items-center gap-3">
+              {data?.cachedAt && (
+                <span className="text-xs text-muted-foreground">
+                  Updated {new Date(data.cachedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                  {new Date(data.cachedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refresh()}
+                disabled={isLoading || isRefreshing}
+                className="gap-2 min-w-[90px]"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
 
           {error ? (
