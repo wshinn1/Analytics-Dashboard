@@ -2,15 +2,15 @@
   "crons": [
     {
       "path": "/api/analytics/prefetch",
-      "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/analytics/prefetch",
-      "schedule": "0 12 * * *"
+      "schedule": "0 10 * * *"
     },
     {
       "path": "/api/analytics/prefetch",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/analytics/prefetch",
+      "schedule": "0 22 * * *"
     }
   ]
 }

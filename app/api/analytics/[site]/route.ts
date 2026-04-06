@@ -80,7 +80,7 @@ export async function GET(
         .eq('date_range', days)
         .single()
       if (cached?.data) {
-        return NextResponse.json(cached.data)
+        return NextResponse.json({ ...cached.data, cachedAt: cached.cached_at })
       }
     } catch {
       // Cache miss or Supabase error — fall through to live fetch
@@ -305,7 +305,9 @@ export async function GET(
         ).then((results) => results.filter(Boolean))
       : []
 
+    const now = new Date().toISOString()
     const analyticsData: AnalyticsData = {
+      cachedAt: now,
       pageviews: pageviewsResult[0]?.[0] || 0,
       uniqueVisitors: uniqueVisitorsResult[0]?.[0] || 0,
       activeUsers: activeUsersResult[0]?.[0] || 0,
