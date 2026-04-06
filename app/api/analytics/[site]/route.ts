@@ -81,13 +81,15 @@ export async function GET(
         .eq('date_range', days)
         .single()
       if (cached?.data) {
+        console.log(`Cache hit: ${site} ${days}`)
         return NextResponse.json(
           { ...cached.data, cachedAt: cached.cached_at },
           { headers: { 'Cache-Control': 'no-store' } }
         )
       }
-    } catch {
-      // Cache miss or Supabase error — fall through to live fetch
+      console.log(`Cache miss: ${site} ${days} — fetching from PostHog`)
+    } catch (e) {
+      console.error(`Cache read failed: ${site} ${days}`, e)
     }
   }
 
@@ -357,18 +359,21 @@ export async function GET(
       returningVisitors: newVsReturningResult[0]?.[1] ?? 0,
     }
 
-    // Write result to cache
+    // Write result to cache (delete + insert avoids needing a unique constraint)
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createAdminClient()
-        await supabase
-          .from('analytics_cache')
-          .upsert(
-            { site_id: site, date_range: days, data: analyticsData, cached_at: new Date().toISOString() },
-            { onConflict: 'site_id,date_range' }
-          )
-      } catch {
-        // Non-fatal — return the data even if caching fails
+        const cacheEntry = {
+          site_id: site,
+          date_range: days,
+          data: analyticsData,
+          cached_at: new Date().toISOString(),
+        }
+        await supabase.from('analytics_cache').delete().match({ site_id: site, date_range: days })
+        const { error: insertError } = await supabase.from('analytics_cache').insert(cacheEntry)
+        if (insertError) console.error('Cache insert failed:', insertError)
+      } catch (e) {
+        console.error('Cache write failed:', e)
       }
     }
 
