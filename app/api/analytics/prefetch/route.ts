@@ -13,21 +13,20 @@ export async function GET(request: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
-  const results: { site: string; range: string; ok: boolean }[] = []
-
-  for (const site of sitesConfig) {
-    for (const range of DATE_RANGES) {
+  const jobs = sitesConfig.flatMap((site) =>
+    DATE_RANGES.map(async (range) => {
       try {
         const res = await fetch(
           `${baseUrl}/api/analytics/${site.id}?days=${range}&refresh=true`,
           { headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } }
         )
-        results.push({ site: site.id, range, ok: res.ok })
+        return { site: site.id, range, ok: res.ok }
       } catch {
-        results.push({ site: site.id, range, ok: false })
+        return { site: site.id, range, ok: false }
       }
-    }
-  }
+    })
+  )
 
+  const results = await Promise.all(jobs)
   return NextResponse.json({ prefetched: results })
 }

@@ -75,7 +75,7 @@ export async function GET(
       const supabase = createAdminClient()
       const { data: cached } = await supabase
         .from('analytics_cache')
-        .select('data')
+        .select('data, cached_at')
         .eq('site_id', site)
         .eq('date_range', days)
         .single()
