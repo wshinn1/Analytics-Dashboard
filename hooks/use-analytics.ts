@@ -8,13 +8,14 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
-export function useAnalytics(siteId: string, days: DateRange) {
+export function useAnalytics(siteId: string, days: DateRange, initialData?: AnalyticsData) {
   const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<AnalyticsData>(
     `/api/analytics/${siteId}?days=${days}`,
     fetcher,
     {
+      fallbackData: days === '7' ? initialData : undefined,
       refreshInterval: 180000,  // background refresh every 3 minutes
       revalidateOnFocus: false,
     }

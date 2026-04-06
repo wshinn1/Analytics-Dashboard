@@ -1,9 +1,28 @@
-'use client'
-
 import { sitesConfig } from '@/lib/sites-config'
 import { SiteSection } from '@/components/analytics/site-section'
+import { createAdminClient } from '@/lib/supabase/admin'
+import type { AnalyticsData } from '@/lib/analytics-types'
 
-export default function DashboardPage() {
+async function getInitialData(): Promise<Record<string, AnalyticsData>> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return {}
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from('analytics_cache')
+      .select('site_id, data, cached_at')
+      .eq('date_range', '7')
+    if (!data) return {}
+    return Object.fromEntries(
+      data.map((row) => [row.site_id, { ...row.data, cachedAt: row.cached_at }])
+    )
+  } catch {
+    return {}
+  }
+}
+
+export default async function DashboardPage() {
+  const initialData = await getInitialData()
+
   return (
     <div className="p-4 pt-18 lg:p-8 lg:pt-8">
       <div className="mb-8">
@@ -15,7 +34,12 @@ export default function DashboardPage() {
 
       <div className="space-y-4">
         {sitesConfig.map((site, index) => (
-          <SiteSection key={site.id} site={site} defaultExpanded={index === 0} />
+          <SiteSection
+            key={site.id}
+            site={site}
+            defaultExpanded={index === 0}
+            initialData={initialData[site.id]}
+          />
         ))}
       </div>
     </div>

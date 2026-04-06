@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAnalytics } from '@/hooks/use-analytics'
 import type { SiteConfig } from '@/lib/sites-config'
-import type { DateRange } from '@/lib/analytics-types'
+import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
 import { StatCards } from './stat-cards'
 import { InsightCards } from './insight-cards'
 import { TrafficChart } from './traffic-chart'
@@ -24,13 +24,14 @@ const VisitorMap = dynamic(
 interface SiteSectionProps {
   site: SiteConfig
   defaultExpanded?: boolean
+  initialData?: AnalyticsData
 }
 
-export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps) {
+export function SiteSection({ site, defaultExpanded = false, initialData }: SiteSectionProps) {
   const storageKey = `analytics-expanded-${site.id}`
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [dateRange, setDateRange] = useState<DateRange>('7')
-  const { data, isLoading, isRefreshing, error, refresh } = useAnalytics(site.id, dateRange)
+  const { data, isLoading, isRefreshing, error, refresh } = useAnalytics(site.id, dateRange, initialData)
 
   // Load expanded state from localStorage on mount
   useEffect(() => {
