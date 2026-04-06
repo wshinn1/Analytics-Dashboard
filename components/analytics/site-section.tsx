@@ -76,9 +76,17 @@ export function SiteSection({ site, defaultExpanded = false }: SiteSectionProps)
             <p className="text-sm text-muted-foreground">{site.domain}</p>
           </div>
         </div>
-        {!isExpanded && data && (
-          <div className="text-sm font-medium" style={{ color: site.color }}>
-            {data.pageviews.toLocaleString()} views
+        {data && (
+          <div className="flex items-center gap-2 text-sm">
+            {data.cachedAt && (
+              <span className="text-xs text-muted-foreground">
+                {new Date(data.cachedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                {new Date(data.cachedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+              </span>
+            )}
+            <span className="font-medium" style={{ color: site.color }}>
+              {data.pageviews.toLocaleString()} views
+            </span>
           </div>
         )}
       </button>
