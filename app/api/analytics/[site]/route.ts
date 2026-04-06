@@ -80,7 +80,10 @@ export async function GET(
         .eq('date_range', days)
         .single()
       if (cached?.data) {
-        return NextResponse.json({ ...cached.data, cachedAt: cached.cached_at })
+        return NextResponse.json(
+          { ...cached.data, cachedAt: cached.cached_at },
+          { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } }
+        )
       }
     } catch {
       // Cache miss or Supabase error — fall through to live fetch
@@ -368,7 +371,10 @@ export async function GET(
       }
     }
 
-    return NextResponse.json(analyticsData)
+    const cacheHeaders = forceRefresh
+      ? { 'Cache-Control': 'no-store' }
+      : { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
+    return NextResponse.json(analyticsData, { headers: cacheHeaders })
   } catch (error) {
     console.error('Analytics API error:', error)
     return NextResponse.json(
