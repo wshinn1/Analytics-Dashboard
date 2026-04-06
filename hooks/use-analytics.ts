@@ -21,7 +21,6 @@ export function useAnalytics(siteId: string, days: DateRange, initialData?: Anal
       // Don't re-fetch on mount when we already have server-rendered data.
       // Key changes (date range switch) always fetch regardless of this flag.
       revalidateOnMount: !fallbackData,
-      refreshInterval: 180000,
       revalidateOnFocus: false,
     }
   )
