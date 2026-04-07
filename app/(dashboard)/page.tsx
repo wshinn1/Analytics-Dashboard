@@ -1,28 +1,18 @@
+'use client'
+
+import useSWR from 'swr'
 import { sitesConfig } from '@/lib/sites-config'
 import { SiteSection } from '@/components/analytics/site-section'
-import { createAdminClient } from '@/lib/supabase/admin'
 import type { AnalyticsData } from '@/lib/analytics-types'
 
-async function getInitialData(): Promise<Record<string, AnalyticsData>> {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return {}
-  try {
-    const supabase = createAdminClient()
-    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
-    const result = await Promise.race([
-      supabase.from('analytics_cache').select('site_id, data, cached_at').eq('date_range', '7'),
-      timeout,
-    ])
-    if (!result || !('data' in result) || !result.data) return {}
-    return Object.fromEntries(
-      result.data.map((row) => [row.site_id, { ...row.data, cachedAt: row.cached_at }])
-    )
-  } catch {
-    return {}
-  }
-}
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-export default async function DashboardPage() {
-  const initialData = await getInitialData()
+export default function DashboardPage() {
+  const { data: allCached } = useSWR<Record<string, AnalyticsData>>(
+    '/api/analytics/all-cached?days=7',
+    fetcher,
+    { revalidateOnFocus: false, revalidateOnMount: true }
+  )
 
   return (
     <div className="p-4 pt-18 lg:p-8 lg:pt-8">
@@ -39,7 +29,7 @@ export default async function DashboardPage() {
             key={site.id}
             site={site}
             defaultExpanded={index === 0}
-            initialData={initialData[site.id]}
+            initialData={allCached?.[site.id]}
           />
         ))}
       </div>

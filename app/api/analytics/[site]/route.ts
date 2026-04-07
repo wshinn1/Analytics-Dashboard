@@ -71,11 +71,7 @@ export async function GET(
   // Always serve from cache unless ?refresh=true.
   // Cron jobs (5am/noon/5pm EST) and manual Refresh keep the cache current.
   const forceRefresh = searchParams.get('refresh') === 'true'
-  if (!forceRefresh) {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      // No Supabase configured — tell the UI to show a Refresh prompt
-      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
-    }
+  if (!forceRefresh && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const supabase = createAdminClient()
       const { data: cached } = await supabase
@@ -91,12 +87,9 @@ export async function GET(
           { headers: { 'Cache-Control': 'no-store' } }
         )
       }
-      // Cache miss — return immediately rather than calling PostHog
       console.log(`Cache miss: ${site} ${days}`)
-      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (e) {
       console.error(`Cache read failed: ${site} ${days}`, e)
-      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
     }
   }
 
@@ -366,22 +359,26 @@ export async function GET(
       returningVisitors: newVsReturningResult[0]?.[1] ?? 0,
     }
 
-    // Write result to cache (delete + insert avoids needing a unique constraint)
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // Write result to Supabase cache
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createAdminClient()
-        const cacheEntry = {
-          site_id: site,
-          date_range: days,
-          data: analyticsData,
-          cached_at: new Date().toISOString(),
+        const { error: upsertError } = await supabase
+          .from('analytics_cache')
+          .upsert(
+            { site_id: site, date_range: days, data: analyticsData, cached_at: new Date().toISOString() },
+            { onConflict: 'site_id,date_range' }
+          )
+        if (upsertError) {
+          console.error(`Cache write failed for ${site} ${days}:`, upsertError)
+        } else {
+          console.log(`Cache write OK: ${site} ${days}`)
         }
-        await supabase.from('analytics_cache').delete().match({ site_id: site, date_range: days })
-        const { error: insertError } = await supabase.from('analytics_cache').insert(cacheEntry)
-        if (insertError) console.error('Cache insert failed:', insertError)
       } catch (e) {
-        console.error('Cache write failed:', e)
+        console.error('Cache write exception:', e)
       }
+    } else {
+      console.warn('Supabase env vars not set — skipping cache write')
     }
 
     return NextResponse.json(analyticsData, { headers: { 'Cache-Control': 'no-store' } })
