@@ -71,26 +71,30 @@ export async function GET(
   // Always serve from cache unless ?refresh=true.
   // Cron jobs (5am/noon/5pm EST) and manual Refresh keep the cache current.
   const forceRefresh = searchParams.get('refresh') === 'true'
-  if (!forceRefresh && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-      const supabase = createAdminClient()
-      const { data: cached } = await supabase
-        .from('analytics_cache')
-        .select('data, cached_at')
-        .eq('site_id', site)
-        .eq('date_range', days)
-        .single()
-      if (cached?.data) {
-        console.log(`Cache hit: ${site} ${days}`)
-        return NextResponse.json(
-          { ...cached.data, cachedAt: cached.cached_at },
-          { headers: { 'Cache-Control': 'no-store' } }
-        )
+  if (!forceRefresh) {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const supabase = createAdminClient()
+        const { data: cached } = await supabase
+          .from('analytics_cache')
+          .select('data, cached_at')
+          .eq('site_id', site)
+          .eq('date_range', days)
+          .single()
+        if (cached?.data) {
+          console.log(`Cache hit: ${site} ${days}`)
+          return NextResponse.json(
+            { ...cached.data, cachedAt: cached.cached_at },
+            { headers: { 'Cache-Control': 'no-store' } }
+          )
+        }
+        console.log(`Cache miss: ${site} ${days} — returning empty, use Refresh to load`)
+      } catch (e) {
+        console.error(`Cache read failed: ${site} ${days}`, e)
       }
-      console.log(`Cache miss: ${site} ${days}`)
-    } catch (e) {
-      console.error(`Cache read failed: ${site} ${days}`, e)
     }
+    // No cache available — return empty immediately, never call PostHog on normal load
+    return NextResponse.json({}, { headers: { 'Cache-Control': 'no-store' } })
   }
 
   const timeInterval = getTimeInterval(days)
