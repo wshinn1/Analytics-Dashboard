@@ -16,7 +16,6 @@ export interface AnalyticsData {
   newVisitors: number
   returningVisitors: number
   cachedAt: string
-  notCached?: boolean
 }
 
 export type DateRange = '24h' | '7' | '30'

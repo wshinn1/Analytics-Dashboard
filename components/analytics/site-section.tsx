@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useAnalytics, isNotCached } from '@/hooks/use-analytics'
+import { useAnalytics } from '@/hooks/use-analytics'
 import type { SiteConfig } from '@/lib/sites-config'
 import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
 import { StatCards } from './stat-cards'
@@ -77,7 +77,7 @@ export function SiteSection({ site, defaultExpanded = false, initialData }: Site
             <p className="text-sm text-muted-foreground">{site.domain}</p>
           </div>
         </div>
-        {data && !isNotCached(data) && (
+        {data && (
           <div className="flex items-center gap-2 text-sm">
             {data.cachedAt && (
               <span className="text-xs text-muted-foreground">
@@ -118,15 +118,9 @@ export function SiteSection({ site, defaultExpanded = false, initialData }: Site
             </div>
           </div>
 
-          {error || isNotCached(data) ? (
-            <div className="rounded-lg bg-muted p-6 text-center">
-              <p className="mb-3 text-sm text-muted-foreground">
-                {error ? 'Failed to load analytics.' : 'No cached data yet.'} Click Refresh to load.
-              </p>
-              <Button variant="outline" size="sm" onClick={() => refresh()} disabled={isRefreshing} className="gap-2">
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Loading...' : 'Refresh'}
-              </Button>
+          {error ? (
+            <div className="rounded-lg bg-destructive/10 p-4 text-center text-destructive">
+              Failed to load analytics. Please try again.
             </div>
           ) : (
             <div className="space-y-6">

@@ -8,10 +8,6 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
-export function isNotCached(data: unknown): boolean {
-  return !!data && typeof data === 'object' && 'notCached' in (data as object)
-}
-
 export function useAnalytics(siteId: string, days: DateRange, initialData?: AnalyticsData) {
   const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
@@ -22,14 +18,11 @@ export function useAnalytics(siteId: string, days: DateRange, initialData?: Anal
     fetcher,
     {
       fallbackData,
-      // Don't re-fetch on mount when we already have server-rendered data.
-      // Key changes (date range switch) always fetch regardless of this flag.
       revalidateOnMount: !fallbackData,
       revalidateOnFocus: false,
     }
   )
 
-  // Force-refresh bypasses server cache, fetches live from PostHog
   const forceRefresh = async () => {
     setIsManualRefreshing(true)
     try {
