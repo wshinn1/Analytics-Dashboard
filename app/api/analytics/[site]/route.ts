@@ -71,7 +71,11 @@ export async function GET(
   // Always serve from cache unless ?refresh=true.
   // Cron jobs (5am/noon/5pm EST) and manual Refresh keep the cache current.
   const forceRefresh = searchParams.get('refresh') === 'true'
-  if (!forceRefresh && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!forceRefresh) {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      // No Supabase configured — tell the UI to show a Refresh prompt
+      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
+    }
     try {
       const supabase = createAdminClient()
       const { data: cached } = await supabase
@@ -87,9 +91,12 @@ export async function GET(
           { headers: { 'Cache-Control': 'no-store' } }
         )
       }
-      console.log(`Cache miss: ${site} ${days} — fetching from PostHog`)
+      // Cache miss — return immediately rather than calling PostHog
+      console.log(`Cache miss: ${site} ${days}`)
+      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (e) {
       console.error(`Cache read failed: ${site} ${days}`, e)
+      return NextResponse.json({ notCached: true }, { headers: { 'Cache-Control': 'no-store' } })
     }
   }
 
