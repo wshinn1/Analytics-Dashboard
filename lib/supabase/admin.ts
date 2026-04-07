@@ -1,8 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
 export function createAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    console.error('Missing Supabase env vars — NEXT_PUBLIC_SUPABASE_URL:', !!url, 'SUPABASE_SERVICE_ROLE_KEY:', !!key)
+    throw new Error('Supabase env vars not configured')
+  }
+  return createClient(url, key)
 }
