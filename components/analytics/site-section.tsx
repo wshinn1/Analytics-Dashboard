@@ -109,7 +109,7 @@ export function SiteSection({ site, defaultExpanded = false, initialData }: Site
                 variant="outline"
                 size="sm"
                 onClick={() => refresh()}
-                disabled={isLoading}
+                disabled={isRefreshing}
                 className="gap-2 min-w-[90px]"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
