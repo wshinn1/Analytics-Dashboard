@@ -8,6 +8,10 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
+export function isNotCached(data: unknown): boolean {
+  return !!data && typeof data === 'object' && 'notCached' in (data as object)
+}
+
 export function useAnalytics(siteId: string, days: DateRange, initialData?: AnalyticsData) {
   const [isManualRefreshing, setIsManualRefreshing] = useState(false)
 
