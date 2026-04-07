@@ -93,8 +93,8 @@ export async function GET(
         console.error(`Cache read failed: ${site} ${days}`, e)
       }
     }
-    // No cache available — return empty immediately, never call PostHog on normal load
-    return NextResponse.json({}, { headers: { 'Cache-Control': 'no-store' } })
+    // No cache available — return null immediately, never call PostHog on normal load
+    return NextResponse.json(null, { headers: { 'Cache-Control': 'no-store' } })
   }
 
   const timeInterval = getTimeInterval(days)
