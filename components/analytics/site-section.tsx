@@ -128,9 +128,9 @@ export function SiteSection({ site, defaultExpanded = false, initialData }: Site
               <StatCards
                 pageviews={data?.pageviews || 0}
                 uniqueVisitors={data?.uniqueVisitors || 0}
-                countriesCount={data?.topCountries.length || 0}
-                statesCount={data?.topStates.length || 0}
-                citiesCount={data?.topCities.length || 0}
+                countriesCount={data?.topCountries?.length || 0}
+                statesCount={data?.topStates?.length || 0}
+                citiesCount={data?.topCities?.length || 0}
                 isLoading={isLoading}
               />
 
