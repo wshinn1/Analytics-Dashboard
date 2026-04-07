@@ -19,7 +19,7 @@ export function useAnalytics(siteId: string, days: DateRange, initialData?: Anal
     {
       fallbackData,
       revalidateOnMount: !fallbackData,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
     }
   )
 
