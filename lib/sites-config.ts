@@ -40,4 +40,12 @@ export const sitesConfig: SiteConfig[] = [
     contentPath: '/blog/',
     color: '#ec4899', // pink
   },
+  {
+    id: 'portfolio',
+    name: 'Portfolio',
+    domain: 'portfolio.wesshinn.com',
+    hostFilter: 'portfolio.wesshinn.com',
+    contentPath: '/',
+    color: '#8b5cf6', // violet
+  },
 ]
