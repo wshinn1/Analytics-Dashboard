@@ -32,20 +32,30 @@ async function runHogQLQuery(query: string, projectId: string, apiKey: string) {
 }
 
 const CUSTOM_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const CUSTOM_RANGE_RE = /^(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})$/
 
 function isCustomDate(days: DateRange): boolean {
   return CUSTOM_DATE_RE.test(days)
 }
 
+function parseDateRange(days: DateRange): { from: string; to: string } | null {
+  const m = days.match(CUSTOM_RANGE_RE)
+  return m ? { from: m[1], to: m[2] } : null
+}
+
 function getTimeInterval(days: DateRange): string {
   if (days === '24h') return 'timestamp >= now() - INTERVAL 24 HOUR'
   if (isCustomDate(days)) return `timestamp >= '${days} 00:00:00' AND timestamp < '${days} 23:59:59'`
+  const range = parseDateRange(days)
+  if (range) return `timestamp >= '${range.from} 00:00:00' AND timestamp < '${range.to} 23:59:59'`
   return `timestamp >= now() - INTERVAL ${days} DAY`
 }
 
 function getPeriodStart(days: DateRange): string {
   if (days === '24h') return `now() - INTERVAL 24 HOUR`
   if (isCustomDate(days)) return `'${days} 00:00:00'`
+  const range = parseDateRange(days)
+  if (range) return `'${range.from} 00:00:00'`
   return `now() - INTERVAL ${days} DAY`
 }
 
@@ -66,9 +76,9 @@ export async function GET(
     return NextResponse.json({ error: 'Site not found' }, { status: 404 })
   }
 
-  // Validate days param — must be a preset or a YYYY-MM-DD date string
+  // Validate days param — must be a preset, a single date, or a date range
   const validPresets = ['24h', '7', '30']
-  if (!validPresets.includes(days) && !CUSTOM_DATE_RE.test(days)) {
+  if (!validPresets.includes(days) && !CUSTOM_DATE_RE.test(days) && !CUSTOM_RANGE_RE.test(days)) {
     return NextResponse.json({ error: 'Invalid date range' }, { status: 400 })
   }
 
@@ -153,6 +163,7 @@ export async function GET(
         apiKey
       ),
       runHogQLQuery(
+        // Single day (24h or specific date) → hourly buckets; multi-day → daily buckets
         days === '24h' || isCustomDate(days)
           ? `SELECT formatDateTime(timestamp, '%Y-%m-%d %H:00') as date, count() as views
              FROM events
