@@ -5,6 +5,7 @@ export interface SiteConfig {
   hostFilter: string | string[]
   contentPath: string
   color: string
+  trackSubdomains?: boolean
 }
 
 export const sitesConfig: SiteConfig[] = [
@@ -23,6 +24,7 @@ export const sitesConfig: SiteConfig[] = [
     hostFilter: 'tektonstable.com',
     contentPath: '/blog/',
     color: '#10b981', // emerald
+    trackSubdomains: true,
   },
   {
     id: 'fullstack',

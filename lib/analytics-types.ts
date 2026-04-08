@@ -18,4 +18,4 @@ export interface AnalyticsData {
   cachedAt: string
 }
 
-export type DateRange = '24h' | '7' | '30'
+export type DateRange = '24h' | '7' | '30' | string

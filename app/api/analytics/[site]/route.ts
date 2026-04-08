@@ -31,15 +31,21 @@ async function runHogQLQuery(query: string, projectId: string, apiKey: string) {
   return data.results || []
 }
 
+const CUSTOM_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+function isCustomDate(days: DateRange): boolean {
+  return CUSTOM_DATE_RE.test(days)
+}
+
 function getTimeInterval(days: DateRange): string {
-  if (days === '24h') {
-    return 'timestamp >= now() - INTERVAL 24 HOUR'
-  }
+  if (days === '24h') return 'timestamp >= now() - INTERVAL 24 HOUR'
+  if (isCustomDate(days)) return `timestamp >= '${days} 00:00:00' AND timestamp < '${days} 23:59:59'`
   return `timestamp >= now() - INTERVAL ${days} DAY`
 }
 
 function getPeriodStart(days: DateRange): string {
   if (days === '24h') return `now() - INTERVAL 24 HOUR`
+  if (isCustomDate(days)) return `'${days} 00:00:00'`
   return `now() - INTERVAL ${days} DAY`
 }
 
@@ -58,6 +64,12 @@ export async function GET(
   const siteConfig = sitesConfig.find((s) => s.id === site)
   if (!siteConfig) {
     return NextResponse.json({ error: 'Site not found' }, { status: 404 })
+  }
+
+  // Validate days param — must be a preset or a YYYY-MM-DD date string
+  const validPresets = ['24h', '7', '30']
+  if (!validPresets.includes(days) && !CUSTOM_DATE_RE.test(days)) {
+    return NextResponse.json({ error: 'Invalid date range' }, { status: 400 })
   }
 
   const apiKey = process.env.POSTHOG_PERSONAL_API_KEY
@@ -141,16 +153,16 @@ export async function GET(
         apiKey
       ),
       runHogQLQuery(
-        days === '24h'
-          ? `SELECT formatDateTime(timestamp, '%Y-%m-%d %H:00') as date, count() as views 
-             FROM events 
+        days === '24h' || isCustomDate(days)
+          ? `SELECT formatDateTime(timestamp, '%Y-%m-%d %H:00') as date, count() as views
+             FROM events
              WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
-             GROUP BY date 
+             GROUP BY date
              ORDER BY date ASC`
-          : `SELECT formatDateTime(timestamp, '%Y-%m-%d') as date, count() as views 
-             FROM events 
+          : `SELECT formatDateTime(timestamp, '%Y-%m-%d') as date, count() as views
+             FROM events
              WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
-             GROUP BY date 
+             GROUP BY date
              ORDER BY date ASC`,
         projectId,
         apiKey
@@ -160,13 +172,17 @@ export async function GET(
     await delay(100)
 
     // Batch 3: Top posts (content path filtered)
+    // For subdomain-tracked sites, include the hostname so you can tell which tenant the post belongs to
+    const postPathField = siteConfig.trackSubdomains
+      ? `concat(properties['$host'], properties['$pathname'])`
+      : `properties['$pathname']`
     const topPostsResult = await runHogQLQuery(
-      `SELECT properties['$pathname'] as path, count() as views 
-       FROM events 
+      `SELECT ${postPathField} as path, count() as views
+       FROM events
        WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
        AND properties['$pathname'] LIKE '${siteConfig.contentPath}%'
-       GROUP BY path 
-       ORDER BY views DESC 
+       GROUP BY path
+       ORDER BY views DESC
        LIMIT 10`,
       projectId,
       apiKey
