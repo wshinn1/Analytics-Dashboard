@@ -3,6 +3,8 @@ import { sitesConfig } from '@/lib/sites-config'
 import type { AnalyticsData, DateRange } from '@/lib/analytics-types'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const maxDuration = 300
+
 const POSTHOG_API_URL = 'https://us.posthog.com/api/projects'
 
 async function runHogQLQuery(query: string, projectId: string, apiKey: string) {
