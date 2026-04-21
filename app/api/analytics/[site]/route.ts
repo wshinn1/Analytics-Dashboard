@@ -187,25 +187,25 @@ export async function GET(
     const postPathField = siteConfig.trackSubdomains
       ? `concat(properties['$host'], properties['$pathname'])`
       : `properties['$pathname']`
-    const topPostsResult = await runHogQLQuery(
+    const safeQuery = async (q: string) => {
+      try { return await runHogQLQuery(q, projectId, apiKey) } catch { return [] }
+    }
+    // Use safeQuery so a topPosts failure doesn't abort the whole request.
+    // GROUP BY uses the expression directly (not the alias) for unambiguous HogQL resolution.
+    const topPostsResult = await safeQuery(
       `SELECT ${postPathField} as path, count() as views
        FROM events
        WHERE event = '$pageview' AND ${timeInterval} AND ${hostFilter}
        AND properties['$pathname'] LIKE '${siteConfig.contentPath}%'
-       GROUP BY path
+       GROUP BY ${postPathField}
        ORDER BY views DESC
-       LIMIT 10`,
-      projectId,
-      apiKey
+       LIMIT 10`
     )
 
     await delay(100)
 
     // Batch 4: Insights — referrers, devices, browsers, bounce rate, new vs returning
     const periodStart = getPeriodStart(days)
-    const safeQuery = async (q: string) => {
-      try { return await runHogQLQuery(q, projectId, apiKey) } catch { return [] }
-    }
 
     const [referrersResult, devicesResult, browsersResult, bounceResult, newVsReturningResult] =
       await Promise.all([
