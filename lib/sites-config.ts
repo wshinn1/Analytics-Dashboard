@@ -50,4 +50,12 @@ export const sitesConfig: SiteConfig[] = [
     contentPath: '/',
     color: '#8b5cf6', // violet
   },
+  {
+    id: 'theqavtable',
+    name: 'The QAV Table',
+    domain: 'theqavtable.com',
+    hostFilter: 'theqavtable.com',
+    contentPath: '/blog/',
+    color: '#06b6d4', // cyan
+  },
 ]
